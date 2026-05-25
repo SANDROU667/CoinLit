@@ -1,4 +1,4 @@
-import type { Pool } from "mysql2/promise";
+import type { DbPool } from "@/lib/db";
 import { promises as fs } from "fs";
 import path from "path";
 import {
@@ -342,7 +342,7 @@ function applyAdminRows(adminRows: AdminRow[], includeArchived = false): CourseS
   return [...base, ...custom, ...archived];
 }
 
-async function listAdminRows(pool: Pool | null): Promise<AdminRow[]> {
+async function listAdminRows(pool: DbPool | null): Promise<AdminRow[]> {
   if (!pool) {
     await ensureCourseMemoryLoaded();
     return Array.from(getMemoryState().bySlug.values());
@@ -371,17 +371,17 @@ function staticCourseLessons(courseId: string): CourseLesson[] {
   return courseModules.find((module) => module.courseId === courseId)?.lessons ?? [];
 }
 
-export async function getCourseCatalog(pool: Pool | null): Promise<CourseSummary[]> {
+export async function getCourseCatalog(pool: DbPool | null): Promise<CourseSummary[]> {
   const rows = await listAdminRows(pool);
   return applyAdminRows(rows);
 }
 
-export async function getAdminCourseCatalog(pool: Pool | null): Promise<CourseSummary[]> {
+export async function getAdminCourseCatalog(pool: DbPool | null): Promise<CourseSummary[]> {
   const rows = await listAdminRows(pool);
   return applyAdminRows(rows, true);
 }
 
-export async function getCourseDetail(pool: Pool | null, courseId: string): Promise<CourseDetail | null> {
+export async function getCourseDetail(pool: DbPool | null, courseId: string): Promise<CourseDetail | null> {
   const slug = normalizeSlug(courseId);
   const catalog = await getCourseCatalog(pool);
   const summary = catalog.find((item) => normalizeSlug(item.id) === slug);

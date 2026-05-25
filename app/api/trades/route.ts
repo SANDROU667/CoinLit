@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     rMultiple: toNumber(row.r_multiple)
   }));
 
-  return NextResponse.json({ trades, source: "mysql" });
+  return NextResponse.json({ trades, source: "postgres" });
 }
 
 export async function POST(request: NextRequest) {

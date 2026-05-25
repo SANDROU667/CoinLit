@@ -1,3 +1,4 @@
+import { getDatabaseUrl } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export function isHostedRuntime() {
@@ -5,14 +6,14 @@ export function isHostedRuntime() {
 }
 
 export function isHostedDatabaseMissing() {
-  return isHostedRuntime() && !process.env.DATABASE_URL;
+  return isHostedRuntime() && !getDatabaseUrl();
 }
 
 export function hostedDatabaseMissingResponse() {
   return NextResponse.json(
     {
       error:
-        "На хостинге нужна переменная DATABASE_URL. Добавь MySQL-подключение в Vercel Environment Variables и перезапусти деплой."
+        "На хостинге нужна база Postgres. Подключи Neon или Vercel Postgres в Storage, чтобы появились POSTGRES_URL или DATABASE_URL, и перезапусти деплой."
     },
     { status: 503 }
   );

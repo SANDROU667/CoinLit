@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
   if (!pool && isHostedDatabaseMissing()) return hostedDatabaseMissingResponse();
   if (pool) await ensureSchema(pool);
   const catalog = await getAdminCourseCatalog(pool);
-  return NextResponse.json({ courses: catalog, source: pool ? "mysql" : "memory" });
+  return NextResponse.json({ courses: catalog, source: pool ? "postgres" : "memory" });
 }
 
 export async function POST(request: NextRequest) {
@@ -131,12 +131,12 @@ export async function POST(request: NextRequest) {
   await pool.execute(
     `INSERT INTO courses (slug, title, level, direction, price, hours, archived)
      VALUES (?, ?, ?, ?, ?, ?, FALSE)
-     ON DUPLICATE KEY UPDATE
-       title = VALUES(title),
-       level = VALUES(level),
-       direction = VALUES(direction),
-       price = VALUES(price),
-       hours = VALUES(hours),
+     ON CONFLICT (slug) DO UPDATE SET
+       title = EXCLUDED.title,
+       level = EXCLUDED.level,
+       direction = EXCLUDED.direction,
+       price = EXCLUDED.price,
+       hours = EXCLUDED.hours,
        archived = FALSE`,
     [slug, title, level, direction, price, hours]
   );
@@ -144,10 +144,11 @@ export async function POST(request: NextRequest) {
   await pool.execute(
     `INSERT INTO course_blueprints (slug, description, required_coins, lessons_json)
      VALUES (?, ?, ?, ?)
-     ON DUPLICATE KEY UPDATE
-       description = VALUES(description),
-       required_coins = VALUES(required_coins),
-       lessons_json = VALUES(lessons_json)`,
+     ON CONFLICT (slug) DO UPDATE SET
+       description = EXCLUDED.description,
+       required_coins = EXCLUDED.required_coins,
+       lessons_json = EXCLUDED.lessons_json,
+       updated_at = CURRENT_TIMESTAMP`,
     [slug, description, requiredCoins, JSON.stringify(lessons)]
   );
 
@@ -173,7 +174,7 @@ export async function DELETE(request: NextRequest) {
   await pool.execute(
     `INSERT INTO courses (slug, title, level, direction, price, hours, archived)
      VALUES (?, ?, ?, ?, ?, ?, TRUE)
-     ON DUPLICATE KEY UPDATE archived = TRUE`,
+     ON CONFLICT (slug) DO UPDATE SET archived = TRUE`,
     [
       slug,
       staticDefaults?.title ?? slug.toUpperCase(),

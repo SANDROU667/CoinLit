@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
   const [rows] = await pool.execute(
     `SELECT id, email, login, role, blocked, created_at
      FROM users
-     WHERE (? = '' OR email LIKE ? ESCAPE '\\\\' OR login LIKE ? ESCAPE '\\\\' OR CAST(id AS CHAR) LIKE ? ESCAPE '\\\\')
+     WHERE (? = '' OR email LIKE ? ESCAPE '\\\\' OR login LIKE ? ESCAPE '\\\\' OR CAST(id AS TEXT) LIKE ? ESCAPE '\\\\')
      ORDER BY created_at DESC
      LIMIT 200`,
     [query, searchTerm, searchTerm, searchTerm]
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
     createdAt: new Date(row.created_at).toISOString()
   })) satisfies AdminUserDto[];
 
-  return NextResponse.json({ users, source: "mysql" });
+  return NextResponse.json({ users, source: "postgres" });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -143,6 +143,6 @@ export async function PATCH(request: NextRequest) {
       blocked: Boolean(updated.blocked),
       createdAt: new Date(updated.created_at).toISOString()
     },
-    source: "mysql"
+    source: "postgres"
   });
 }

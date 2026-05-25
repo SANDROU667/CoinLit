@@ -82,11 +82,11 @@ export async function POST(request: NextRequest) {
   if (pool) {
     await ensureSchema(pool);
     try {
-      const [result] = await pool.execute(
-        "INSERT INTO users (email, login, password_hash, date_of_birth) VALUES (?, ?, ?, ?)",
+      const [rows] = await pool.execute<{ id: number }>(
+        "INSERT INTO users (email, login, password_hash, date_of_birth) VALUES (?, ?, ?, ?) RETURNING id",
         [payload.email, payload.login, passwordHash, payload.dateOfBirth]
       );
-      user = { ...user, id: Number((result as { insertId: number }).insertId) };
+      user = { ...user, id: Number(rows[0]?.id) };
     } catch {
       if (asJson) {
         return NextResponse.json({ error: "Пользователь с таким email или логином уже существует." }, { status: 409 });

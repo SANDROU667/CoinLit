@@ -28,6 +28,6 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     user: { id: dbUser.id, email: dbUser.email, login: dbUser.login, role: dbUser.role },
-    source: "mysql"
+    source: "postgres"
   });
 }

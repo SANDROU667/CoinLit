@@ -38,7 +38,7 @@ async function grantLessonMilestoneAchievements(pool: NonNullable<ReturnType<typ
     await pool.execute(
       `INSERT INTO achievements (user_id, code, title, earned_at)
        VALUES (?, ?, ?, ?)
-       ON DUPLICATE KEY UPDATE title = VALUES(title)`,
+       ON CONFLICT (user_id, code) DO UPDATE SET title = EXCLUDED.title`,
       [userId, achievement.code, achievement.title, new Date(achievement.date)]
     );
     existingCodes.add(achievement.code);
@@ -67,10 +67,12 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const [result] = await pool.execute(
-    `INSERT IGNORE INTO lesson_progress
+  const [, result] = await pool.execute(
+    `INSERT INTO lesson_progress
      (user_id, course_id, course_title, lesson_id, lesson_title, test_correct, coins)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (user_id, lesson_id) DO NOTHING
+     RETURNING id`,
     [
       user.id,
       body.courseId,
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
     ]
   );
 
-  const inserted = Number((result as { affectedRows: number }).affectedRows) > 0;
+  const inserted = result.affectedRows > 0;
   if (inserted) {
     await pool.execute("UPDATE users SET coins = coins + ? WHERE id = ?", [Math.max(0, Number(body.coins) || 0), user.id]);
   }
