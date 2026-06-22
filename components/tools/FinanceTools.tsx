@@ -301,7 +301,7 @@ export function FinanceTools() {
         <span className="chip">Журнал сделок</span>
         <h3>Добавь прошедшую сделку и оцени результат</h3>
         <p className="muted">
-          Режим хранения: <b>{storageMode === "server" ? "серверная синхронизация (MySQL)" : "локально в браузере"}</b>.
+          Сможете посмотреть в: <b>{storageMode === "server" ? "Портфель и история сделок" : "локально в браузере"}</b>.
         </p>
 
         <label className="field">
